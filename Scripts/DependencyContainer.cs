@@ -2,6 +2,7 @@ namespace UniT.DI
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.ObjectModel;
     using System.Linq;
     using System.Reflection;
 
@@ -95,33 +96,11 @@ namespace UniT.DI
 
         #endregion
 
-        #region Generic
+        #region Resolve
 
-        public static void Add<T>() => Add(typeof(T));
+        private static readonly ReadOnlyCollection<Type> SupportedInterfaces = new(new[] { typeof(IEnumerable<>), typeof(ICollection<>), typeof(IList<>), typeof(IReadOnlyCollection<>), typeof(IReadOnlyList<>) });
 
-        public static void AddInterfaces<T>() => AddInterfaces(typeof(T));
-
-        public static void AddInterfacesAndSelf<T>() => AddInterfacesAndSelf(typeof(T));
-
-        public static T Get<T>() => (T)Get(typeof(T));
-
-        public static T GetOrDefault<T>() => (T)GetOrDefault(typeof(T));
-
-        public static T[] GetAll<T>() => GetAll(typeof(T)).Cast<T>().ToArray();
-
-        public static T Instantiate<T>() => (T)Instantiate(typeof(T));
-
-        #endregion
-
-        #region Private
-
-        private static readonly Dictionary<Type, HashSet<object>> Cache = new();
-
-        private static HashSet<object> GetCache(Type type)
-        {
-            if (!Cache.ContainsKey(type)) Cache.Add(type, new());
-            return Cache[type];
-        }
+        private static readonly ReadOnlyCollection<Type> SupportedConcreteTypes = new(new[] { typeof(Collection<>), typeof(List<>), typeof(ReadOnlyCollection<>) });
 
         private static object[] ResolveParameters(ParameterInfo[] parameters, string context)
         {
@@ -130,9 +109,13 @@ namespace UniT.DI
                 var parameterType = parameter.ParameterType;
                 switch (parameterType)
                 {
-                    case { IsGenericType: true } when typeof(IEnumerable<>).IsAssignableFrom(parameterType.GetGenericTypeDefinition()):
+                    case { IsGenericType: true, IsInterface: true } when SupportedInterfaces.Contains(parameterType.GetGenericTypeDefinition()):
                     {
                         return GetArray(parameterType.GetGenericArguments()[0]);
+                    }
+                    case { IsGenericType: true } when SupportedConcreteTypes.Contains(parameterType.GetGenericTypeDefinition()):
+                    {
+                        return Activator.CreateInstance(parameterType, GetArray(parameterType.GetGenericArguments()[0]));
                     }
                     case { IsArray: true }:
                     {
@@ -154,6 +137,36 @@ namespace UniT.DI
                 instances.CopyTo(array, 0);
                 return array;
             }
+        }
+
+        #endregion
+
+        #region Generic
+
+        public static void Add<T>() => Add(typeof(T));
+
+        public static void AddInterfaces<T>() => AddInterfaces(typeof(T));
+
+        public static void AddInterfacesAndSelf<T>() => AddInterfacesAndSelf(typeof(T));
+
+        public static T Get<T>() => (T)Get(typeof(T));
+
+        public static T GetOrDefault<T>() => (T)GetOrDefault(typeof(T));
+
+        public static T[] GetAll<T>() => GetAll(typeof(T)).Cast<T>().ToArray();
+
+        public static T Instantiate<T>() => (T)Instantiate(typeof(T));
+
+        #endregion
+
+        #region Cache
+
+        private static readonly Dictionary<Type, HashSet<object>> Cache = new();
+
+        private static HashSet<object> GetCache(Type type)
+        {
+            if (!Cache.ContainsKey(type)) Cache.Add(type, new());
+            return Cache[type];
         }
 
         #endregion
