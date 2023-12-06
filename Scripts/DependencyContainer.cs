@@ -61,7 +61,7 @@ namespace UniT.DI
 
         public static object Get(Type type)
         {
-            return GetOrDefault(type) ?? throw new($"No instance found for {type.Name}");
+            return GetOrDefault(type) ?? throw new Exception($"No instance found for {type.Name}");
         }
 
         public static object GetOrDefault(Type type)
@@ -80,17 +80,17 @@ namespace UniT.DI
 
         public static object Instantiate(Type type)
         {
-            if (type.IsAbstract) throw new($"Cannot instantiate abstract type {type.Name}");
-            if (type.ContainsGenericParameters) throw new($"Cannot instantiate generic type {type.Name}");
+            if (type.IsAbstract) throw new Exception($"Cannot instantiate abstract type {type.Name}");
+            if (type.ContainsGenericParameters) throw new Exception($"Cannot instantiate generic type {type.Name}");
             var ctor = type.GetConstructors().SingleOrDefault()
-                ?? throw new($"No constructor found for {type.Name}");
+                ?? throw new Exception($"No constructor found for {type.Name}");
             return ctor.Invoke(ResolveParameters(ctor.GetParameters(), $"instantiating {type.Name}"));
         }
 
         public static object Invoke(object obj, string methodName)
         {
             var method = obj.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                ?? throw new($"Method {methodName} not found on {obj.GetType().Name}");
+                ?? throw new Exception($"Method {methodName} not found on {obj.GetType().Name}");
             return method.Invoke(obj, ResolveParameters(method.GetParameters(), $"invoking {methodName} on {obj.GetType().Name}"));
         }
 
@@ -98,9 +98,9 @@ namespace UniT.DI
 
         #region Resolve
 
-        private static readonly ReadOnlyCollection<Type> SupportedInterfaces = new(new[] { typeof(IEnumerable<>), typeof(ICollection<>), typeof(IList<>), typeof(IReadOnlyCollection<>), typeof(IReadOnlyList<>) });
+        private static readonly ReadOnlyCollection<Type> SupportedInterfaces = new ReadOnlyCollection<Type>(new[] { typeof(IEnumerable<>), typeof(ICollection<>), typeof(IList<>), typeof(IReadOnlyCollection<>), typeof(IReadOnlyList<>) });
 
-        private static readonly ReadOnlyCollection<Type> SupportedConcreteTypes = new(new[] { typeof(Collection<>), typeof(List<>), typeof(ReadOnlyCollection<>) });
+        private static readonly ReadOnlyCollection<Type> SupportedConcreteTypes = new ReadOnlyCollection<Type>(new[] { typeof(Collection<>), typeof(List<>), typeof(ReadOnlyCollection<>) });
 
         private static object[] ResolveParameters(ParameterInfo[] parameters, string context)
         {
@@ -124,7 +124,7 @@ namespace UniT.DI
                     default:
                     {
                         var instance = GetOrDefault(parameterType);
-                        if (instance is null && !parameter.HasDefaultValue) throw new($"Cannot resolve {parameterType.Name} for {parameter.Name} while {context}");
+                        if (instance is null && !parameter.HasDefaultValue) throw new Exception($"Cannot resolve {parameterType.Name} for {parameter.Name} while {context}");
                         return instance ?? parameter.DefaultValue;
                     }
                 }
@@ -142,6 +142,8 @@ namespace UniT.DI
         #endregion
 
         #region Generic
+
+        public static void Add<T>(T instance) => Add(typeof(T), instance);
 
         public static void Add<T>() => Add(typeof(T));
 
@@ -161,11 +163,11 @@ namespace UniT.DI
 
         #region Cache
 
-        private static readonly Dictionary<Type, HashSet<object>> Cache = new();
+        private static readonly Dictionary<Type, HashSet<object>> Cache = new Dictionary<Type, HashSet<object>>();
 
         private static HashSet<object> GetCache(Type type)
         {
-            if (!Cache.ContainsKey(type)) Cache.Add(type, new());
+            if (!Cache.ContainsKey(type)) Cache.Add(type, new HashSet<object>());
             return Cache[type];
         }
 
