@@ -152,7 +152,6 @@ namespace UniT.DI
 
         #region Generic
 
-        #if NET_STANDARD_2_1
         public void Add<T>(T instance) => this.Add(typeof(T), instance);
 
         public void Add<T>() => this.Add(typeof(T));
@@ -168,7 +167,6 @@ namespace UniT.DI
         public T[] GetAll<T>() => this.GetAll(typeof(T)).Cast<T>().ToArray();
 
         public T Instantiate<T>() => (T)this.Instantiate(typeof(T));
-        #endif
 
         #endregion
 
