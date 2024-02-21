@@ -107,9 +107,9 @@ namespace UniT.DI
 
         #region Resolve
 
-        private readonly ReadOnlyCollection<Type> supportedInterfaces = new ReadOnlyCollection<Type>(new[] { typeof(IEnumerable<>), typeof(ICollection<>), typeof(IList<>), typeof(IReadOnlyCollection<>), typeof(IReadOnlyList<>) });
+        private readonly Type[] supportedInterfaces = { typeof(IEnumerable<>), typeof(ICollection<>), typeof(IList<>), typeof(IReadOnlyCollection<>), typeof(IReadOnlyList<>) };
 
-        private readonly ReadOnlyCollection<Type> supportedConcreteTypes = new ReadOnlyCollection<Type>(new[] { typeof(Collection<>), typeof(List<>), typeof(ReadOnlyCollection<>) });
+        private readonly Type[] supportedConcreteTypes = { typeof(Collection<>), typeof(List<>), typeof(ReadOnlyCollection<>) };
 
         private object[] ResolveParameters(ParameterInfo[] parameters, string context)
         {
