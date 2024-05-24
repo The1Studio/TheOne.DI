@@ -1,8 +1,10 @@
+#nullable enable
 namespace UniT.DI
 {
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Reflection;
 
@@ -70,12 +72,18 @@ namespace UniT.DI
 
         public object Get(Type type)
         {
-            return this.GetOrDefault(type) ?? throw new Exception($"No instance found for {type.Name}");
+            return this.TryGet(type, out var instance) ? instance : throw new Exception($"No instance found for {type.Name}");
         }
 
-        public object GetOrDefault(Type type)
+        public bool TryGet(Type type, [MaybeNullWhen(false)] out object instance)
         {
-            return this.GetCache(type).SingleOrDefault();
+            if (this.GetCache(type).SingleOrDefault() is { } obj)
+            {
+                instance = obj;
+                return true;
+            }
+            instance = null;
+            return false;
         }
 
         public object[] GetAll(Type type)
@@ -107,9 +115,9 @@ namespace UniT.DI
 
         #region Resolve
 
-        private readonly Type[] supportedInterfaces = { typeof(IEnumerable<>), typeof(ICollection<>), typeof(IList<>), typeof(IReadOnlyCollection<>), typeof(IReadOnlyList<>) };
+        private static readonly Type[] SupportedInterfaces = { typeof(IEnumerable<>), typeof(ICollection<>), typeof(IList<>), typeof(IReadOnlyCollection<>), typeof(IReadOnlyList<>) };
 
-        private readonly Type[] supportedConcreteTypes = { typeof(Collection<>), typeof(List<>), typeof(ReadOnlyCollection<>) };
+        private static readonly Type[] SupportedConcreteTypes = { typeof(Collection<>), typeof(List<>), typeof(ReadOnlyCollection<>) };
 
         private object[] ResolveParameters(ParameterInfo[] parameters, string context)
         {
@@ -118,23 +126,23 @@ namespace UniT.DI
                 var parameterType = parameter.ParameterType;
                 switch (parameterType)
                 {
-                    case { IsGenericType: true, IsInterface: true } when this.supportedInterfaces.Contains(parameterType.GetGenericTypeDefinition()):
+                    case { IsGenericType: true, IsInterface: true } when SupportedInterfaces.Contains(parameterType.GetGenericTypeDefinition()):
                     {
                         return GetArray(parameterType.GetGenericArguments()[0]);
                     }
-                    case { IsGenericType: true } when this.supportedConcreteTypes.Contains(parameterType.GetGenericTypeDefinition()):
+                    case { IsGenericType: true } when SupportedConcreteTypes.Contains(parameterType.GetGenericTypeDefinition()):
                     {
                         return Activator.CreateInstance(parameterType, GetArray(parameterType.GetGenericArguments()[0]));
                     }
                     case { IsArray: true }:
                     {
-                        return GetArray(parameterType.GetElementType());
+                        return GetArray(parameterType.GetElementType()!);
                     }
                     default:
                     {
-                        var instance = this.GetOrDefault(parameterType);
-                        if (instance is null && !parameter.HasDefaultValue) throw new Exception($"Cannot resolve {parameterType.Name} for {parameter.Name} while {context}");
-                        return instance ?? parameter.DefaultValue;
+                        if (this.TryGet(parameterType, out var instance)) return instance;
+                        if (parameter.HasDefaultValue) return parameter.DefaultValue;
+                        throw new Exception($"Cannot resolve {parameterType.Name} for {parameter.Name} while {context}");
                     }
                 }
             }).ToArray();
@@ -152,7 +160,7 @@ namespace UniT.DI
 
         #region Generic
 
-        public void Add<T>(T instance) => this.Add(typeof(T), instance);
+        public void Add<T>(T instance) where T : notnull => this.Add(typeof(T), instance);
 
         public void Add<T>() => this.Add(typeof(T));
 
@@ -162,7 +170,16 @@ namespace UniT.DI
 
         public T Get<T>() => (T)this.Get(typeof(T));
 
-        public T GetOrDefault<T>() => (T)this.GetOrDefault(typeof(T));
+        public bool TryGet<T>([MaybeNullWhen(false)] out T instance)
+        {
+            if (this.TryGet(typeof(T), out var obj))
+            {
+                instance = (T)obj;
+                return true;
+            }
+            instance = default;
+            return false;
+        }
 
         public T[] GetAll<T>() => this.GetAll(typeof(T)).Cast<T>().ToArray();
 
