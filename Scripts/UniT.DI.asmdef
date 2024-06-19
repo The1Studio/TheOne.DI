@@ -1,4 +1,15 @@
 {
   "name": "UniT.DI",
-  "rootNamespace": "UniT.DI"
+  "rootNamespace": "UniT.DI",
+  "references": [
+    "UniT.Extensions",
+    "Zenject"
+  ],
+  "versionDefines": [
+    {
+      "name": "com.svermeulen.extenject",
+      "expression": "",
+      "define": "UNIT_ZENJECT"
+    }
+  ]
 }

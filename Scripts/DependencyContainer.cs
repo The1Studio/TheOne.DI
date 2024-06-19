@@ -7,15 +7,34 @@ namespace UniT.DI
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Reflection;
+    using UniT.Extensions;
 
-    public sealed class DependencyContainer
+    public sealed class DependencyContainer : IDependencyContainer
     {
         #region Constructor
 
+        private readonly Dictionary<Type, HashSet<object>> cache = new Dictionary<Type, HashSet<object>>();
+
         public DependencyContainer()
         {
-            this.Add(this);
+            this.AddInterfaces(this);
         }
+
+        #endregion
+
+        #region IDependencyContainer
+
+        object IDependencyContainer.Resolve(Type type) => this.Get(type);
+
+        T IDependencyContainer.Resolve<T>() => this.Get<T>();
+
+        object[] IDependencyContainer.ResolveAll(Type type) => this.GetAll(type);
+
+        T[] IDependencyContainer.ResolveAll<T>() => this.GetAll<T>();
+
+        object IDependencyContainer.Instantiate(Type type) => this.Instantiate(type);
+
+        T IDependencyContainer.Instantiate<T>() => this.Instantiate<T>();
 
         #endregion
 
@@ -23,7 +42,7 @@ namespace UniT.DI
 
         public void Add(Type type, object instance)
         {
-            this.GetCache(type).Add(instance);
+            this.cache.GetOrAdd(type).Add(instance);
         }
 
         public void Add(object instance)
@@ -41,7 +60,7 @@ namespace UniT.DI
 
         public void AddInterfacesAndSelf(object instance)
         {
-            foreach (var @interface in instance.GetType().GetInterfaces().Append(instance.GetType()))
+            foreach (var @interface in instance.GetType().GetInterfaces().Prepend(instance.GetType()))
             {
                 this.Add(@interface, instance);
             }
@@ -70,6 +89,11 @@ namespace UniT.DI
 
         #region Get
 
+        public bool Contains(Type type)
+        {
+            return this.cache.ContainsKey(type);
+        }
+
         public object Get(Type type)
         {
             return this.TryGet(type, out var instance) ? instance : throw new Exception($"No instance found for {type.Name}");
@@ -77,7 +101,7 @@ namespace UniT.DI
 
         public bool TryGet(Type type, [MaybeNullWhen(false)] out object instance)
         {
-            if (this.GetCache(type).SingleOrDefault() is { } obj)
+            if (this.cache.GetOrDefault(type)?.SingleOrDefault() is { } obj)
             {
                 instance = obj;
                 return true;
@@ -88,7 +112,7 @@ namespace UniT.DI
 
         public object[] GetAll(Type type)
         {
-            return this.GetCache(type).ToArray();
+            return this.cache.GetOrDefault(type)?.ToArray() ?? Array.Empty<object>();
         }
 
         #endregion
@@ -104,20 +128,25 @@ namespace UniT.DI
             return ctor.Invoke(this.ResolveParameters(ctor.GetParameters(), $"instantiating {type.Name}"));
         }
 
+        public object Invoke(object obj, MethodInfo method)
+        {
+            return method.Invoke(obj, this.ResolveParameters(method.GetParameters(), $"invoking {method.Name} on {obj.GetType().Name}"));
+        }
+
         public object Invoke(object obj, string methodName)
         {
             var method = obj.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
                 ?? throw new Exception($"Method {methodName} not found on {obj.GetType().Name}");
-            return method.Invoke(obj, this.ResolveParameters(method.GetParameters(), $"invoking {methodName} on {obj.GetType().Name}"));
+            return this.Invoke(obj, method);
         }
 
         #endregion
 
         #region Resolve
 
-        private static readonly Type[] SupportedInterfaces = { typeof(IEnumerable<>), typeof(ICollection<>), typeof(IList<>), typeof(IReadOnlyCollection<>), typeof(IReadOnlyList<>) };
+        private static readonly HashSet<Type> SupportedInterfaces = new HashSet<Type>() { typeof(IEnumerable<>), typeof(ICollection<>), typeof(IList<>), typeof(IReadOnlyCollection<>), typeof(IReadOnlyList<>) };
 
-        private static readonly Type[] SupportedConcreteTypes = { typeof(Collection<>), typeof(List<>), typeof(ReadOnlyCollection<>) };
+        private static readonly HashSet<Type> SupportedConcreteTypes = new HashSet<Type>() { typeof(Collection<>), typeof(List<>), typeof(ReadOnlyCollection<>) };
 
         private object[] ResolveParameters(ParameterInfo[] parameters, string context)
         {
@@ -168,6 +197,8 @@ namespace UniT.DI
 
         public void AddInterfacesAndSelf<T>() => this.AddInterfacesAndSelf(typeof(T));
 
+        public bool Contains<T>() => this.Contains(typeof(T));
+
         public T Get<T>() => (T)this.Get(typeof(T));
 
         public bool TryGet<T>([MaybeNullWhen(false)] out T instance)
@@ -184,18 +215,6 @@ namespace UniT.DI
         public T[] GetAll<T>() => this.GetAll(typeof(T)).Cast<T>().ToArray();
 
         public T Instantiate<T>() => (T)this.Instantiate(typeof(T));
-
-        #endregion
-
-        #region Cache
-
-        private readonly Dictionary<Type, HashSet<object>> cache = new Dictionary<Type, HashSet<object>>();
-
-        private HashSet<object> GetCache(Type type)
-        {
-            if (!this.cache.ContainsKey(type)) this.cache.Add(type, new HashSet<object>());
-            return this.cache[type];
-        }
 
         #endregion
     }
