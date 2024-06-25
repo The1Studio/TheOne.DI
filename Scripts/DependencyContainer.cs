@@ -121,11 +121,10 @@ namespace UniT.DI
 
         public object Instantiate(Type type)
         {
-            if (type.IsAbstract) throw new Exception($"Cannot instantiate abstract type {type.Name}");
-            if (type.ContainsGenericParameters) throw new Exception($"Cannot instantiate generic type {type.Name}");
-            var ctor = type.GetConstructors().SingleOrDefault()
-                ?? throw new Exception($"No constructor found for {type.Name}");
-            return ctor.Invoke(this.ResolveParameters(ctor.GetParameters(), $"instantiating {type.Name}"));
+            if (type.IsAbstract) throw new InvalidOperationException($"Cannot instantiate abstract type {type.Name}");
+            if (type.ContainsGenericParameters) throw new InvalidOperationException($"Cannot instantiate generic type {type.Name}");
+            var constructor = type.GetSingleConstructor();
+            return constructor.Invoke(this.ResolveParameters(constructor.GetParameters(), $"instantiating {type.Name}"));
         }
 
         public object Invoke(object obj, MethodInfo method)
