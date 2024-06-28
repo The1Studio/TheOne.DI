@@ -24,6 +24,10 @@ namespace UniT.DI
 
         #region IDependencyContainer
 
+        bool IDependencyContainer.TryResolve(Type type, [MaybeNullWhen(false)] out object instance) => this.TryGet(type, out instance);
+
+        bool IDependencyContainer.TryResolve<T>([MaybeNullWhen(false)] out T instance) => this.TryGet(out instance);
+
         object IDependencyContainer.Resolve(Type type) => this.Get(type);
 
         T IDependencyContainer.Resolve<T>() => this.Get<T>();

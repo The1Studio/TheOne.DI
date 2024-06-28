@@ -2,9 +2,14 @@
 namespace UniT.DI
 {
     using System;
+    using System.Diagnostics.CodeAnalysis;
 
     public interface IDependencyContainer
     {
+        public bool TryResolve(Type type, [MaybeNullWhen(false)] out object instance);
+
+        public bool TryResolve<T>([MaybeNullWhen(false)] out T instance);
+
         public object Resolve(Type type);
 
         public T Resolve<T>();
