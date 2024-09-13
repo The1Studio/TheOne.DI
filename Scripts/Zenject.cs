@@ -8,12 +8,12 @@ namespace UniT.DI
     using UnityEngine.Scripting;
     using Zenject;
 
-    public sealed class ZenjectContainer : IDependencyContainer
+    public sealed class ZenjectWrapper : IDependencyContainer
     {
         private readonly DiContainer container;
 
         [Preserve]
-        public ZenjectContainer(DiContainer container) => this.container = container;
+        public ZenjectWrapper(DiContainer container) => this.container = container;
 
         bool IDependencyContainer.TryResolve(Type type, [MaybeNullWhen(false)] out object instance)
         {
