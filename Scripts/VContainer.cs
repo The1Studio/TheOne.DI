@@ -39,10 +39,23 @@ namespace VContainer
 {
     using System;
     using System.Collections.Generic;
+    using UnityEngine;
     using VContainer.Internal;
+    using VContainer.Unity;
+    using Object = UnityEngine.Object;
 
     public static class VContainerExtensions
     {
+        public static ComponentRegistrationBuilder RegisterComponentInNewPrefabResource<T>(this IContainerBuilder builder, string path, Lifetime lifetime) where T : Component
+        {
+            return builder.RegisterComponentInNewPrefab(_ => Resources.Load<T>(path), lifetime);
+        }
+
+        public static RegistrationBuilder RegisterResource<T>(this IContainerBuilder builder, string path, Lifetime lifetime) where T : Object
+        {
+            return builder.Register(_ => Resources.Load<T>(path), lifetime);
+        }
+
         public static RegistrationBuilder AsInterfacesAndSelf(this RegistrationBuilder registrationBuilder)
         {
             return registrationBuilder.AsImplementedInterfaces().AsSelf();
