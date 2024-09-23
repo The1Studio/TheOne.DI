@@ -8,6 +8,8 @@ namespace UniT.DI
     using System.Linq;
     using System.Reflection;
     using UniT.Extensions;
+    using UnityEngine;
+    using Object = UnityEngine.Object;
 
     public sealed class DependencyContainer : IDependencyContainer
     {
@@ -36,9 +38,9 @@ namespace UniT.DI
 
         T[] IDependencyContainer.ResolveAll<T>() => this.GetAll<T>();
 
-        object IDependencyContainer.Instantiate(Type type) => this.Instantiate(type);
+        object IDependencyContainer.Instantiate(Type type, params object[] @params) => this.Instantiate(type, @params);
 
-        T IDependencyContainer.Instantiate<T>() => this.Instantiate<T>();
+        T IDependencyContainer.Instantiate<T>(params object[] @params) => this.Instantiate<T>(@params);
 
         #endregion
 
@@ -123,24 +125,24 @@ namespace UniT.DI
 
         #region Instantiate
 
-        public object Instantiate(Type type)
+        public object Instantiate(Type type, params object[] @params)
         {
             if (type.IsAbstract) throw new InvalidOperationException($"Cannot instantiate abstract type {type.Name}");
             if (type.ContainsGenericParameters) throw new InvalidOperationException($"Cannot instantiate generic type {type.Name}");
             var constructor = type.GetSingleConstructor();
-            return constructor.Invoke(this.ResolveParameters(constructor.GetParameters(), $"instantiating {type.Name}"));
+            return constructor.Invoke(this.ResolveParameters(constructor.GetParameters(), @params, $"instantiating {type.Name}"));
         }
 
-        public object Invoke(object obj, MethodInfo method)
+        public object Invoke(object obj, MethodInfo method, params object[] @params)
         {
-            return method.Invoke(obj, this.ResolveParameters(method.GetParameters(), $"invoking {method.Name} on {obj.GetType().Name}"));
+            return method.Invoke(obj, this.ResolveParameters(method.GetParameters(), @params, $"invoking {method.Name} on {obj.GetType().Name}"));
         }
 
-        public object Invoke(object obj, string methodName)
+        public object Invoke(object obj, string methodName, params object[] @params)
         {
             var method = obj.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
                 ?? throw new Exception($"Method {methodName} not found on {obj.GetType().Name}");
-            return this.Invoke(obj, method);
+            return this.Invoke(obj, method, @params);
         }
 
         #endregion
@@ -151,11 +153,12 @@ namespace UniT.DI
 
         private static readonly HashSet<Type> SupportedConcreteTypes = new HashSet<Type>() { typeof(Collection<>), typeof(List<>), typeof(ReadOnlyCollection<>) };
 
-        private object[] ResolveParameters(ParameterInfo[] parameters, string context)
+        private object[] ResolveParameters(ParameterInfo[] parameters, object[] @params, string context)
         {
             return parameters.Select(parameter =>
             {
                 var parameterType = parameter.ParameterType;
+                if (@params.FirstOrDefault(param => parameterType.IsInstanceOfType(param)) is { } param) return param;
                 switch (parameterType)
                 {
                     case { IsGenericType: true, IsInterface: true } when SupportedInterfaces.Contains(parameterType.GetGenericTypeDefinition()):
@@ -217,7 +220,51 @@ namespace UniT.DI
 
         public T[] GetAll<T>() => this.GetAll(typeof(T)).Cast<T>().ToArray();
 
-        public T Instantiate<T>() => (T)this.Instantiate(typeof(T));
+        public T Instantiate<T>(params object[] @params) => (T)this.Instantiate(typeof(T), @params);
+
+        #endregion
+
+        #region Add From
+
+        public void AddFromResource<T>(string path) where T : Object => this.Add(Resources.Load<T>(path).Instantiate());
+
+        public void AddInterfacesFromResource<T>(string path) where T : Object => this.AddInterfaces(Resources.Load<T>(path).Instantiate());
+
+        public void AddInterfacesAndSelfFromResource<T>(string path) where T : Object => this.AddInterfacesAndSelf(Resources.Load<T>(path).Instantiate());
+
+        public void AddFromComponentInNewPrefabResource<T>(string path) where T : Component => this.Add(InstantiatePrefabResource<T>(path));
+
+        public void AddInterfacesFromComponentInNewPrefabResource<T>(string path) where T : Component => this.AddInterfaces(InstantiatePrefabResource<T>(path));
+
+        public void AddInterfacesAndSelfFromComponentInNewPrefabResource<T>(string path) where T : Component => this.AddInterfacesAndSelf(InstantiatePrefabResource<T>(path));
+
+        public void AddFromComponentInNewPrefab<T>(T prefab) where T : Component => this.Add(InstantiatePrefab(prefab));
+
+        public void AddInterfacesFromComponentInNewPrefab<T>(T prefab) where T : Component => this.AddInterfaces(InstantiatePrefab(prefab));
+
+        public void AddInterfacesAndSelfFromComponentInNewPrefab<T>(T prefab) where T : Component => this.AddInterfacesAndSelf(InstantiatePrefab(prefab));
+
+        public void AddFromComponentInHierarchy<T>() where T : Object => this.Add(Object.FindObjectOfType<T>(true));
+
+        public void AddInterfacesFromComponentInHierarchy<T>() where T : Object => this.AddInterfaces(Object.FindObjectOfType<T>(true));
+
+        public void AddInterfacesAndSelfFromComponentInHierarchy<T>() where T : Object => this.AddInterfacesAndSelf(Object.FindObjectOfType<T>(true));
+
+        public void AddAllFromComponentInHierarchy<T>() where T : Object => Object.FindObjectsOfType<T>(true).ForEach(this.Add);
+
+        public void AddAllInterfacesFromComponentInHierarchy<T>() where T : Object => Object.FindObjectsOfType<T>(true).ForEach(this.AddInterfaces);
+
+        public void AddAllInterfacesAndSelfFromComponentInHierarchy<T>() where T : Object => Object.FindObjectsOfType<T>(true).ForEach(this.AddInterfacesAndSelf);
+
+        private static T InstantiatePrefab<T>(T prefab) where T : Component
+        {
+            return prefab.Instantiate(prefab.transform.position, prefab.transform.rotation).DontDestroyOnLoad();
+        }
+
+        private static T InstantiatePrefabResource<T>(string path) where T : Component
+        {
+            return InstantiatePrefab(Resources.Load<GameObject>(path).GetComponentOrThrow<T>());
+        }
 
         #endregion
     }

@@ -18,8 +18,8 @@ namespace UniT.DI
 
         public T[] ResolveAll<T>();
 
-        public object Instantiate(Type type);
+        public object Instantiate(Type type, params object[] @params);
 
-        public T Instantiate<T>();
+        public T Instantiate<T>(params object[] @params);
     }
 }
