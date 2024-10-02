@@ -33,5 +33,14 @@ namespace UniT.DI
 
         T IDependencyContainer.Instantiate<T>(params object[] @params) => this.container.Instantiate<T>(@params);
     }
+
+    public static class VContainerExtensions
+    {
+        public static void RegisterDependencyContainer(this IContainerBuilder builder)
+        {
+            if (builder.Exists(typeof(IDependencyContainer), true)) return;
+            builder.Register<VContainerWrapper>(Lifetime.Singleton).AsImplementedInterfaces();
+        }
+    }
 }
 #endif

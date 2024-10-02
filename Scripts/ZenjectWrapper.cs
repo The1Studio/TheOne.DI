@@ -49,5 +49,14 @@ namespace UniT.DI
 
         T IDependencyContainer.Instantiate<T>(params object[] @params) => this.container.Instantiate<T>(@params);
     }
+
+    public static class ZenjectExtensions
+    {
+        public static void BindDependencyContainer(this DiContainer container)
+        {
+            if (container.HasBinding<IDependencyContainer>()) return;
+            container.BindInterfacesTo<ZenjectWrapper>().AsSingle();
+        }
+    }
 }
 #endif
