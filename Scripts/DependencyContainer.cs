@@ -38,9 +38,9 @@ namespace UniT.DI
 
         T[] IDependencyContainer.ResolveAll<T>() => this.GetAll<T>();
 
-        object IDependencyContainer.Instantiate(Type type, params object[] @params) => this.Instantiate(type, @params);
+        object IDependencyContainer.Instantiate(Type type, params object?[] @params) => this.Instantiate(type, @params);
 
-        T IDependencyContainer.Instantiate<T>(params object[] @params) => this.Instantiate<T>(@params);
+        T IDependencyContainer.Instantiate<T>(params object?[] @params) => this.Instantiate<T>(@params);
 
         #endregion
 
@@ -76,19 +76,19 @@ namespace UniT.DI
 
         #region Auto Add
 
-        public void Add(Type type)
+        public void Add(Type type, params object?[] @params)
         {
-            this.Add(type, this.Instantiate(type));
+            this.Add(type, this.Instantiate(type, @params));
         }
 
-        public void AddInterfaces(Type type)
+        public void AddInterfaces(Type type, params object?[] @params)
         {
-            this.AddInterfaces(this.Instantiate(type));
+            this.AddInterfaces(this.Instantiate(type, @params));
         }
 
-        public void AddInterfacesAndSelf(Type type)
+        public void AddInterfacesAndSelf(Type type, params object?[] @params)
         {
-            this.AddInterfacesAndSelf(this.Instantiate(type));
+            this.AddInterfacesAndSelf(this.Instantiate(type, @params));
         }
 
         #endregion
@@ -125,7 +125,7 @@ namespace UniT.DI
 
         #region Instantiate
 
-        public object Instantiate(Type type, params object[] @params)
+        public object Instantiate(Type type, params object?[] @params)
         {
             if (type.IsAbstract) throw new InvalidOperationException($"Cannot instantiate abstract type {type.Name}");
             if (type.ContainsGenericParameters) throw new InvalidOperationException($"Cannot instantiate generic type {type.Name}");
@@ -153,7 +153,7 @@ namespace UniT.DI
 
         private static readonly HashSet<Type> SupportedConcreteTypes = new HashSet<Type>() { typeof(Collection<>), typeof(List<>), typeof(ReadOnlyCollection<>) };
 
-        private object[] ResolveParameters(ParameterInfo[] parameters, object[] @params, string context)
+        private object[] ResolveParameters(ParameterInfo[] parameters, object?[] @params, string context)
         {
             return parameters.Select(parameter =>
             {
@@ -197,11 +197,11 @@ namespace UniT.DI
 
         public void Add<T>(T instance) where T : notnull => this.Add(typeof(T), instance);
 
-        public void Add<T>() => this.Add(typeof(T));
+        public void Add<T>(params object?[] @params) => this.Add(typeof(T), @params);
 
-        public void AddInterfaces<T>() => this.AddInterfaces(typeof(T));
+        public void AddInterfaces<T>(params object?[] @params) => this.AddInterfaces(typeof(T), @params);
 
-        public void AddInterfacesAndSelf<T>() => this.AddInterfacesAndSelf(typeof(T));
+        public void AddInterfacesAndSelf<T>(params object?[] @params) => this.AddInterfacesAndSelf(typeof(T), @params);
 
         public bool Contains<T>() => this.Contains(typeof(T));
 
@@ -220,17 +220,17 @@ namespace UniT.DI
 
         public T[] GetAll<T>() => this.GetAll(typeof(T)).Cast<T>().ToArray();
 
-        public T Instantiate<T>(params object[] @params) => (T)this.Instantiate(typeof(T), @params);
+        public T Instantiate<T>(params object?[] @params) => (T)this.Instantiate(typeof(T), @params);
 
         #endregion
 
         #region Add From
 
-        public void AddFromResource<T>(string path) where T : Object => this.Add(Resources.Load<T>(path).Instantiate());
+        public void AddFromResource<T>(string path) where T : Object => this.Add(Resources.Load<T>(path));
 
-        public void AddInterfacesFromResource<T>(string path) where T : Object => this.AddInterfaces(Resources.Load<T>(path).Instantiate());
+        public void AddInterfacesFromResource<T>(string path) where T : Object => this.AddInterfaces(Resources.Load<T>(path));
 
-        public void AddInterfacesAndSelfFromResource<T>(string path) where T : Object => this.AddInterfacesAndSelf(Resources.Load<T>(path).Instantiate());
+        public void AddInterfacesAndSelfFromResource<T>(string path) where T : Object => this.AddInterfacesAndSelf(Resources.Load<T>(path));
 
         public void AddFromComponentInNewPrefabResource<T>(string path) where T : Component => this.Add(InstantiatePrefabResource<T>(path));
 
@@ -258,7 +258,7 @@ namespace UniT.DI
 
         private static T InstantiatePrefab<T>(T prefab) where T : Component
         {
-            return prefab.Instantiate(prefab.transform.position, prefab.transform.rotation).DontDestroyOnLoad();
+            return Object.Instantiate(prefab).DontDestroyOnLoad();
         }
 
         private static T InstantiatePrefabResource<T>(string path) where T : Component
