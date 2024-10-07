@@ -226,11 +226,11 @@ namespace UniT.DI
 
         #region Add From
 
-        public void AddFromResource<T>(string path) where T : Object => this.Add(Resources.Load<T>(path));
+        public void AddFromResource<T>(string path) where T : Object => this.Add(LoadResource<T>(path));
 
-        public void AddInterfacesFromResource<T>(string path) where T : Object => this.AddInterfaces(Resources.Load<T>(path));
+        public void AddInterfacesFromResource<T>(string path) where T : Object => this.AddInterfaces(LoadResource<T>(path));
 
-        public void AddInterfacesAndSelfFromResource<T>(string path) where T : Object => this.AddInterfacesAndSelf(Resources.Load<T>(path));
+        public void AddInterfacesAndSelfFromResource<T>(string path) where T : Object => this.AddInterfacesAndSelf(LoadResource<T>(path));
 
         public void AddFromComponentInNewPrefabResource<T>(string path) where T : Component => this.Add(InstantiatePrefabResource<T>(path));
 
@@ -256,15 +256,11 @@ namespace UniT.DI
 
         public void AddAllInterfacesAndSelfFromComponentInHierarchy<T>() where T : Object => Object.FindObjectsOfType<T>(true).ForEach(this.AddInterfacesAndSelf);
 
-        private static T InstantiatePrefab<T>(T prefab) where T : Component
-        {
-            return Object.Instantiate(prefab).DontDestroyOnLoad();
-        }
+        private static T LoadResource<T>(string path) where T : Object => Resources.Load<T>(path) ?? throw new ArgumentOutOfRangeException($"Failed to load {path}");
 
-        private static T InstantiatePrefabResource<T>(string path) where T : Component
-        {
-            return InstantiatePrefab(Resources.Load<GameObject>(path).GetComponentOrThrow<T>());
-        }
+        private static T InstantiatePrefab<T>(T prefab) where T : Component => Object.Instantiate(prefab).DontDestroyOnLoad();
+
+        private static T InstantiatePrefabResource<T>(string path) where T : Component => InstantiatePrefab(LoadResource<GameObject>(path).GetComponentOrThrow<T>());
 
         #endregion
     }
