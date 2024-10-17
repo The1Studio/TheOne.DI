@@ -153,12 +153,18 @@ namespace UniT.DI
 
         private static readonly HashSet<Type> SupportedConcreteTypes = new HashSet<Type>() { typeof(Collection<>), typeof(List<>), typeof(ReadOnlyCollection<>) };
 
-        private object[] ResolveParameters(ParameterInfo[] parameters, object?[] @params, string context)
+        private object?[] ResolveParameters(ParameterInfo[] parameters, object?[] @params, string context)
         {
             return parameters.Select(parameter =>
             {
                 var parameterType = parameter.ParameterType;
-                if (@params.FirstOrDefault(param => parameterType.IsInstanceOfType(param)) is { } param) return param;
+                var paramIndex    = @params.FirstIndexOrDefault(param => parameterType.IsInstanceOfType(param));
+                if (paramIndex >= 0)
+                {
+                    var param = @params[paramIndex];
+                    @params[paramIndex] = null;
+                    return param;
+                }
                 switch (parameterType)
                 {
                     case { IsGenericType: true, IsInterface: true } when SupportedInterfaces.Contains(parameterType.GetGenericTypeDefinition()):
