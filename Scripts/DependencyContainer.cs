@@ -102,7 +102,7 @@ namespace UniT.DI
 
         public object Get(Type type)
         {
-            return this.TryGet(type, out var instance) ? instance : throw new Exception($"No instance found for {type.Name}");
+            return this.TryGet(type, out var instance) ? instance : throw new ArgumentOutOfRangeException(nameof(type), type, $"No instance found for {type.Name}");
         }
 
         public bool TryGet(Type type, [MaybeNullWhen(false)] out object instance)
@@ -141,7 +141,7 @@ namespace UniT.DI
         public object Invoke(object obj, string methodName, params object[] @params)
         {
             var method = obj.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                ?? throw new Exception($"Method {methodName} not found on {obj.GetType().Name}");
+                ?? throw new ArgumentOutOfRangeException(nameof(methodName), methodName, $"Method {methodName} not found on {obj.GetType().Name}");
             return this.Invoke(obj, method, @params);
         }
 
@@ -250,19 +250,19 @@ namespace UniT.DI
 
         public void AddInterfacesAndSelfFromComponentInNewPrefab<T>(T prefab) where T : Component => this.AddInterfacesAndSelf(InstantiatePrefab(prefab));
 
-        public void AddFromComponentInHierarchy<T>() where T : Object => this.Add(Object.FindObjectOfType<T>(true));
+        public void AddFromComponentInHierarchy<T>() where T : Object => this.Add(Object.FindObjectsByType<T>(FindObjectsInactive.Exclude, FindObjectsSortMode.None).Single());
 
-        public void AddInterfacesFromComponentInHierarchy<T>() where T : Object => this.AddInterfaces(Object.FindObjectOfType<T>(true));
+        public void AddInterfacesFromComponentInHierarchy<T>() where T : Object => this.AddInterfaces(Object.FindObjectsByType<T>(FindObjectsInactive.Exclude, FindObjectsSortMode.None).Single());
 
-        public void AddInterfacesAndSelfFromComponentInHierarchy<T>() where T : Object => this.AddInterfacesAndSelf(Object.FindObjectOfType<T>(true));
+        public void AddInterfacesAndSelfFromComponentInHierarchy<T>() where T : Object => this.AddInterfacesAndSelf(Object.FindObjectsByType<T>(FindObjectsInactive.Exclude, FindObjectsSortMode.None).Single());
 
-        public void AddAllFromComponentInHierarchy<T>() where T : Object => Object.FindObjectsOfType<T>(true).ForEach(this.Add);
+        public void AddAllFromComponentInHierarchy<T>() where T : Object => Object.FindObjectsByType<T>(FindObjectsInactive.Exclude, FindObjectsSortMode.None).ForEach(this.Add);
 
-        public void AddAllInterfacesFromComponentInHierarchy<T>() where T : Object => Object.FindObjectsOfType<T>(true).ForEach(this.AddInterfaces);
+        public void AddAllInterfacesFromComponentInHierarchy<T>() where T : Object => Object.FindObjectsByType<T>(FindObjectsInactive.Exclude, FindObjectsSortMode.None).ForEach(this.AddInterfaces);
 
-        public void AddAllInterfacesAndSelfFromComponentInHierarchy<T>() where T : Object => Object.FindObjectsOfType<T>(true).ForEach(this.AddInterfacesAndSelf);
+        public void AddAllInterfacesAndSelfFromComponentInHierarchy<T>() where T : Object => Object.FindObjectsByType<T>(FindObjectsInactive.Exclude, FindObjectsSortMode.None).ForEach(this.AddInterfacesAndSelf);
 
-        private static T LoadResource<T>(string path) where T : Object => Resources.Load<T>(path) ?? throw new ArgumentOutOfRangeException($"Failed to load {path}");
+        private static T LoadResource<T>(string path) where T : Object => Resources.Load<T>(path) ?? throw new ArgumentOutOfRangeException(nameof(path), path, $"Failed to load {path}");
 
         private static T InstantiatePrefab<T>(T prefab) where T : Component => Object.Instantiate(prefab).DontDestroyOnLoad();
 
