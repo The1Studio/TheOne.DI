@@ -1,4 +1,4 @@
-﻿#if UNIT_VCONTAINER
+﻿#if THEONE_VCONTAINER
 #nullable enable
 namespace VContainer
 {
@@ -7,7 +7,7 @@ namespace VContainer
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
-    using UniT.DI;
+    using TheOne.DI;
     using UnityEngine;
     using VContainer.Internal;
     using VContainer.Unity;

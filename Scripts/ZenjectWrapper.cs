@@ -1,11 +1,11 @@
-﻿#if UNIT_ZENJECT
+﻿#if THEONE_ZENJECT
 #nullable enable
 namespace Zenject
 {
     using System;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
-    using UniT.DI;
+    using TheOne.DI;
     using Zenject.Internal;
 
     public sealed class ZenjectWrapper : IDependencyContainer
