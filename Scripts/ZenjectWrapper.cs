@@ -1,11 +1,11 @@
-﻿#if UNIT_ZENJECT
+﻿#if THEONE_ZENJECT
 #nullable enable
 namespace Zenject
 {
     using System;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
-    using UniT.DI;
+    using TheOne.DI;
     using UnityEngine;
     using Zenject.Internal;
 

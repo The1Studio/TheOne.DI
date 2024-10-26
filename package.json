@@ -1,6 +1,6 @@
 {
-  "name": "com.frostbun.unit.di",
-  "displayName": "UniT Dependency Injection",
+  "name": "com.theone.di",
+  "displayName": "TheOne Dependency Injection",
   "description": "A minimal dependency container for Unity",
   "version": "1.1.2",
   "unity": "2022.3",
@@ -11,6 +11,6 @@
     "url": "https://github.com/frostbun"
   },
   "dependencies": {
-    "com.frostbun.unit.extensions": "1.1.27"
+    "com.theone.extensions": "1.1.27"
   }
 }

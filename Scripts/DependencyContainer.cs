@@ -1,5 +1,5 @@
 #nullable enable
-namespace UniT.DI
+namespace TheOne.DI
 {
     using System;
     using System.Collections.Generic;
@@ -7,7 +7,7 @@ namespace UniT.DI
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Reflection;
-    using UniT.Extensions;
+    using TheOne.Extensions;
     using UnityEngine;
     using Object = UnityEngine.Object;
 
