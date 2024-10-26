@@ -250,17 +250,17 @@ namespace UniT.DI
 
         public void AddInterfacesAndSelfFromComponentInNewPrefab<T>(T prefab) where T : Component => this.AddInterfacesAndSelf(InstantiatePrefab(prefab));
 
-        public void AddFromComponentInHierarchy<T>() where T : Object => this.Add(Object.FindObjectsByType<T>(FindObjectsInactive.Exclude, FindObjectsSortMode.None).Single());
+        public void AddFromComponentInHierarchy<T>() where T : Object => this.Add(Object.FindObjectsByType<T>(FindObjectsSortMode.None).Single());
 
-        public void AddInterfacesFromComponentInHierarchy<T>() where T : Object => this.AddInterfaces(Object.FindObjectsByType<T>(FindObjectsInactive.Exclude, FindObjectsSortMode.None).Single());
+        public void AddInterfacesFromComponentInHierarchy<T>() where T : Object => this.AddInterfaces(Object.FindObjectsByType<T>(FindObjectsSortMode.None).Single());
 
-        public void AddInterfacesAndSelfFromComponentInHierarchy<T>() where T : Object => this.AddInterfacesAndSelf(Object.FindObjectsByType<T>(FindObjectsInactive.Exclude, FindObjectsSortMode.None).Single());
+        public void AddInterfacesAndSelfFromComponentInHierarchy<T>() where T : Object => this.AddInterfacesAndSelf(Object.FindObjectsByType<T>(FindObjectsSortMode.None).Single());
 
-        public void AddAllFromComponentInHierarchy<T>() where T : Object => Object.FindObjectsByType<T>(FindObjectsInactive.Exclude, FindObjectsSortMode.None).ForEach(this.Add);
+        public void AddAllFromComponentInHierarchy<T>() where T : Object => Object.FindObjectsByType<T>(FindObjectsSortMode.None).ForEach(this.Add);
 
-        public void AddAllInterfacesFromComponentInHierarchy<T>() where T : Object => Object.FindObjectsByType<T>(FindObjectsInactive.Exclude, FindObjectsSortMode.None).ForEach(this.AddInterfaces);
+        public void AddAllInterfacesFromComponentInHierarchy<T>() where T : Object => Object.FindObjectsByType<T>(FindObjectsSortMode.None).ForEach(this.AddInterfaces);
 
-        public void AddAllInterfacesAndSelfFromComponentInHierarchy<T>() where T : Object => Object.FindObjectsByType<T>(FindObjectsInactive.Exclude, FindObjectsSortMode.None).ForEach(this.AddInterfacesAndSelf);
+        public void AddAllInterfacesAndSelfFromComponentInHierarchy<T>() where T : Object => Object.FindObjectsByType<T>(FindObjectsSortMode.None).ForEach(this.AddInterfacesAndSelf);
 
         private static T LoadResource<T>(string path) where T : Object => Resources.Load<T>(path) ?? throw new ArgumentOutOfRangeException(nameof(path), path, $"Failed to load {path}");
 
