@@ -1,6 +1,6 @@
-﻿#if UNIT_ZENJECT
+﻿#if THEONE_ZENJECT
 #nullable enable
-namespace UniT.DI
+namespace TheOne.DI
 {
     using System;
     using System.Diagnostics.CodeAnalysis;

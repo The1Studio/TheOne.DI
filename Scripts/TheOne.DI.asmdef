@@ -1,8 +1,8 @@
 {
-  "name": "UniT.DI",
-  "rootNamespace": "UniT.DI",
+  "name": "TheOne.DI",
+  "rootNamespace": "TheOne.DI",
   "references": [
-    "UniT.Extensions",
+    "TheOne.Extensions",
     "Zenject",
     "VContainer"
   ],
@@ -10,12 +10,12 @@
     {
       "name": "com.svermeulen.extenject",
       "expression": "",
-      "define": "UNIT_ZENJECT"
+      "define": "THEONE_ZENJECT"
     },
     {
       "name": "jp.hadashikick.vcontainer",
       "expression": "",
-      "define": "UNIT_VCONTAINER"
+      "define": "THEONE_VCONTAINER"
     }
   ]
 }

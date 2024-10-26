@@ -1,6 +1,6 @@
-﻿#if UNIT_VCONTAINER
+﻿#if THEONE_VCONTAINER
 #nullable enable
-namespace UniT.DI
+namespace TheOne.DI
 {
     using System;
     using System.Collections;

@@ -1,5 +1,5 @@
 ﻿#nullable enable
-namespace UniT.DI
+namespace TheOne.DI
 {
     using System;
     using System.Diagnostics.CodeAnalysis;
