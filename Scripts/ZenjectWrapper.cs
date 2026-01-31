@@ -1,12 +1,12 @@
 ﻿#if UNIT_ZENJECT
 #nullable enable
-namespace UniT.DI
+namespace Zenject
 {
     using System;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
-    using UnityEngine.Scripting;
-    using Zenject;
+    using UniT.DI;
+    using Zenject.Internal;
 
     public sealed class ZenjectWrapper : IDependencyContainer
     {
