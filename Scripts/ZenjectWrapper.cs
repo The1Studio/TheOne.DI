@@ -6,6 +6,7 @@ namespace Zenject
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using UniT.DI;
+    using UnityEngine;
     using Zenject.Internal;
 
     public sealed class ZenjectWrapper : IDependencyContainer
@@ -28,9 +29,9 @@ namespace Zenject
 
         bool IDependencyContainer.TryResolve<T>([MaybeNullWhen(false)] out T instance)
         {
-            if (this.container.TryResolve(typeof(T)) is { } obj)
+            if (this.container.TryResolve(typeof(T)) is T obj)
             {
-                instance = (T)obj;
+                instance = obj;
                 return true;
             }
             instance = default;
@@ -48,6 +49,12 @@ namespace Zenject
         object IDependencyContainer.Instantiate(Type type, params object?[] @params) => this.container.Instantiate(type, @params);
 
         T IDependencyContainer.Instantiate<T>(params object?[] @params) => this.container.Instantiate<T>(@params);
+
+        GameObject IDependencyContainer.Instantiate(GameObject prefab) => this.container.InstantiatePrefab(prefab);
+
+        void IDependencyContainer.Inject(object instance) => this.container.Inject(instance);
+
+        void IDependencyContainer.Inject(GameObject instance) => this.container.InjectGameObject(instance);
     }
 
     public static class ZenjectExtensions

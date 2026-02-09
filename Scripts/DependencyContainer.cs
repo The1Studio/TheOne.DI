@@ -42,6 +42,12 @@ namespace UniT.DI
 
         T IDependencyContainer.Instantiate<T>(params object?[] @params) => this.Instantiate<T>(@params);
 
+        GameObject IDependencyContainer.Instantiate(GameObject prefab) => throw new NotSupportedException();
+
+        void IDependencyContainer.Inject(object instance) => throw new NotSupportedException();
+
+        void IDependencyContainer.Inject(GameObject instance) => throw new NotSupportedException();
+
         #endregion
 
         #region Manual Add

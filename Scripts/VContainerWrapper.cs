@@ -35,6 +35,12 @@ namespace VContainer
         object IDependencyContainer.Instantiate(Type type, params object?[] @params) => this.container.Instantiate(type, @params);
 
         T IDependencyContainer.Instantiate<T>(params object?[] @params) => this.container.Instantiate<T>(@params);
+
+        GameObject IDependencyContainer.Instantiate(GameObject prefab) => this.container.Instantiate(prefab);
+
+        void IDependencyContainer.Inject(object instance) => this.container.Inject(instance);
+
+        void IDependencyContainer.Inject(GameObject instance) => this.container.InjectGameObject(instance);
     }
 
     public static class VContainerExtensions

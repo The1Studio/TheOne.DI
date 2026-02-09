@@ -3,6 +3,7 @@ namespace UniT.DI
 {
     using System;
     using System.Diagnostics.CodeAnalysis;
+    using UnityEngine;
 
     public interface IDependencyContainer
     {
@@ -21,5 +22,11 @@ namespace UniT.DI
         public object Instantiate(Type type, params object?[] @params);
 
         public T Instantiate<T>(params object?[] @params);
+
+        public GameObject Instantiate(GameObject prefab);
+
+        public void Inject(object instance);
+
+        public void Inject(GameObject instance);
     }
 }
